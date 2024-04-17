@@ -1,8 +1,9 @@
-﻿using AutoMapper;
+﻿ using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Talabat.APIs.DTOs;
 using Talabat.APIs.Errors;
+using Talabat.APIs.Helpers;
 using Talabat.Core.Entities;
 using Talabat.Core.Repositories;
 using Talabat.Core.Specifications;
@@ -26,12 +27,20 @@ namespace Talabat.APIs.Controllers
         }
         //Get All Products
         [HttpGet]
-        public async Task<ActionResult<IReadOnlyList<ProductToReturnDto>>> GetProducts(string? Sort,int? BrandId,int? TypeId)
+        public async Task<ActionResult<Pagination<ProductToReturnDto>>> GetProducts([FromQuery]ProductSpecParams Params)
         {
-            var Specs = new ProductWithBrandAndTypeSpecifications(Sort,BrandId,TypeId);
+            var Specs = new ProductWithBrandAndTypeSpecifications(Params);
             var Products = await _productRepo.GetAllWithSpecsAsync(Specs);
             var MappedProducts = _mapper.Map<IReadOnlyList<Product>, IReadOnlyList<ProductToReturnDto>>(Products);
-            return Ok(MappedProducts);
+            var CountSpec = new ProductWithFilterationForCountAsync(Params);
+            var Count =await _productRepo.GetCountWithSpecsAsync(CountSpec);
+            //var ReturnedObject = new Pagination<ProductToReturnDto>()
+            //{
+            //    PageSize = Params.PageSize,
+            //    PageIndex = Params.PageIndex,
+            //    Data = MappedProducts
+            //};
+            return Ok(new Pagination<ProductToReturnDto>(Params.PageSize,Params.PageIndex,Count,MappedProducts));
         }
 
         //GetProductById

@@ -22,6 +22,8 @@ namespace Talabat.Core.Repositories
 
         // Get By Id 
         public Task<T> GetByIdWithSpecsAsync(ISpecifications<T> Specs);
+
+        public Task<int> GetCountWithSpecsAsync(ISpecifications<T> specs);
     
         #endregion
 

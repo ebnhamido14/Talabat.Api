@@ -34,12 +34,6 @@ namespace Talabat.APIs.Controllers
             var MappedProducts = _mapper.Map<IReadOnlyList<Product>, IReadOnlyList<ProductToReturnDto>>(Products);
             var CountSpec = new ProductWithFilterationForCountAsync(Params);
             var Count =await _productRepo.GetCountWithSpecsAsync(CountSpec);
-            //var ReturnedObject = new Pagination<ProductToReturnDto>()
-            //{
-            //    PageSize = Params.PageSize,
-            //    PageIndex = Params.PageIndex,
-            //    Data = MappedProducts
-            //};
             return Ok(new Pagination<ProductToReturnDto>(Params.PageSize,Params.PageIndex,Count,MappedProducts));
         }
 

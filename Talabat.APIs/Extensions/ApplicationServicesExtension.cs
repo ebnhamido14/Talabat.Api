@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Talabat.APIs.Errors;
 using Talabat.APIs.Helpers;
+using Talabat.Core.Entities.Identity;
 using Talabat.Core.Repositories;
 using Talabat.Repository;
 

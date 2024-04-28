@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
@@ -6,9 +8,11 @@ using Talabat.APIs.Extensions;
 using Talabat.APIs.Helpers;
 using Talabat.APIs.MiddleWares;
 using Talabat.Core.Entities;
+using Talabat.Core.Entities.Identity;
 using Talabat.Core.Repositories;
 using Talabat.Repository;
 using Talabat.Repository.Data;
+using Talabat.Repository.Identity;
 
 namespace Talabat.APIs
 {
@@ -30,12 +34,18 @@ namespace Talabat.APIs
             }); // Allow Dependency Injection For DbContext
                 //builder.Services.AddScoped<IGenericRepository<Product>, GenericRepository<Product>>();
             builder.Services.AddApplicationServices();
+
+            builder.Services.AddIdentityService(builder.Configuration);
             builder.Services.AddSingleton<IConnectionMultiplexer>(options =>
             {
                 var Connection = builder.Configuration.GetConnectionString("RedisConnection");
                 return ConnectionMultiplexer.Connect(Connection);
             });
 
+            builder.Services.AddDbContext<AppIdentityDbContext>(options =>
+            {
+                options.UseSqlServer(builder.Configuration.GetConnectionString("IdentityConnection"));
+            });
 
 
             var app = builder.Build();
@@ -52,7 +62,13 @@ namespace Talabat.APIs
 
                 await DbContext.Database.MigrateAsync(); // Update Database
 
+                var IdentityContext = Services.GetRequiredService<AppIdentityDbContext>();
+
+                await IdentityContext.Database.MigrateAsync();
+                var UserManager = Services.GetRequiredService<UserManager<AppUser>>();
                 // Call Data Seeding
+
+                await AppIdentityDbContextSeed.SeedUserAsync(UserManager);
                 await StoreContextSeed.SeedAsync(DbContext);
             }
             catch (Exception ex)
@@ -74,6 +90,7 @@ namespace Talabat.APIs
             app.UseStatusCodePagesWithReExecute("/errors/{0}");
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
 
